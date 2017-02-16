@@ -7,6 +7,15 @@ package entity;
 public class Ingredient {
         private String id;
         private String name;
+    private String count;
+
+    public String Count() {
+        return count;
+    }
+
+    public void setCount(String count) {
+        this.count = count;
+    }
 
         public String getId() {
             return id;
