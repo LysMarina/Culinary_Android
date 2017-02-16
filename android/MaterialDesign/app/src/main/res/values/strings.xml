@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Кулінарний помічник</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+
+    <string name="nav_item_home">Список продуктів</string>
+    <string name="nav_item_friends">Кулінарна книга</string>
+    <string name="nav_item_notifications">Створити рецепт</string>
+
+    <!-- navigation drawer item labels  -->
+    <string-array name="nav_drawer_labels">
+        <item>@string/nav_item_home</item>
+        <item>@string/nav_item_friends</item>
+        <item>@string/nav_item_notifications</item>
+    </string-array>
+
+    <string name="title_create">Створити рецепт</string>
+    <string name="title_cookingbook">Кулінарна книга</string>
+    <string name="title_ingredient">Список продуктів</string>
+</resources>
