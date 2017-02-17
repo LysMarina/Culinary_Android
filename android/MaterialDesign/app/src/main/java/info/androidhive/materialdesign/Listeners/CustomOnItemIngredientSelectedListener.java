@@ -12,6 +12,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
+import entity.Ingredient;
 import info.androidhive.materialdesign.R;
 import info.androidhive.materialdesign.activity.CreateFragment;
 
@@ -25,6 +28,15 @@ public class CustomOnItemIngredientSelectedListener implements AdapterView.OnIte
     public Context context;
     private TextView final_text;
     public String text;
+    public  ArrayList<Ingredient> ingredients;
+
+
+    public CustomOnItemIngredientSelectedListener(){}
+    public CustomOnItemIngredientSelectedListener(ArrayList<Ingredient> ingredients){
+       this.ingredients = ingredients;
+
+
+    }
 
     public void onItemSelected(final AdapterView<?> parent, View view, int pos, long id) {
          context = parent.getContext();
@@ -58,6 +70,8 @@ public class CustomOnItemIngredientSelectedListener implements AdapterView.OnIte
                                         View view= parent.getRootView();
                                         final_text = (TextView)view.findViewById(R.id.text_ingredients);
                                         final_text.append( text+" "+userInput.getText()+"\n");
+
+                                        ingredients.add(new Ingredient(text,  userInput.getText().toString() ));
 
                                     }
                                 })

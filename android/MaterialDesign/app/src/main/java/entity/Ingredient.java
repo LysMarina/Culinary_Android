@@ -7,8 +7,20 @@ package entity;
 public class Ingredient {
         private String id;
         private String name;
-    private String count;
+        private String count;
 
+
+
+    public Ingredient (){
+        this.id ="id";
+        this.name="name";
+        this.count="0";
+    }
+    public Ingredient (String name,String count){
+      //  this.id =id;
+        this.name=name;
+        this.count=count;
+    }
     public String Count() {
         return count;
     }
