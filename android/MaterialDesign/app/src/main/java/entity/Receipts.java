@@ -14,7 +14,8 @@ public class Receipts {
     private String name;
     private ArrayList<Ingredient> ingredients; ;
     private String family;
-    private Uri photo;
+    private String photo;
+    private String text;
 
 
 
@@ -24,6 +25,7 @@ public class Receipts {
         this.ingredients =new ArrayList<Ingredient>();
         this.family="family";
         this.photo = null;
+        this.text = "";
     }
 public void addIngredient(Ingredient ingredient){
    ingredients.add(ingredient);
@@ -41,11 +43,11 @@ public void addIngredient(Ingredient ingredient){
     }
 
 
-    public Uri getPhoto() {
+    public String getPhoto() {
         return photo;
     }
 
-    public void setPhoto(Uri photo) {
+    public void setPhoto(String photo) {
         this.photo = photo;
     }
     public String getFamily() {
@@ -56,6 +58,13 @@ public void addIngredient(Ingredient ingredient){
         this.family = family;
     }
 
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
     public String getName() {
         return name;
     }
@@ -63,7 +72,6 @@ public void addIngredient(Ingredient ingredient){
     public void setName(String name) {
         this.name = name;
     }
-
     public ArrayList<Ingredient> getIngredients() {
         return ingredients;
     }

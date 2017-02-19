@@ -21,7 +21,7 @@ public class Ingredient {
         this.name=name;
         this.count=count;
     }
-    public String Count() {
+    public String getCount() {
         return count;
     }
 

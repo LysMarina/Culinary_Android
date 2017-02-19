@@ -1,17 +1,16 @@
 package info.androidhive.materialdesign.activity;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,18 +19,17 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
-
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import entity.Family;
 import entity.Ingredient;
@@ -41,21 +39,15 @@ import info.androidhive.materialdesign.Listeners.CustomOnItemSelectedListener;
 import info.androidhive.materialdesign.R;
 import info.androidhive.materialdesign.retrofit.FamilyOps;
 import info.androidhive.materialdesign.retrofit.IngredientOps;
+import info.androidhive.materialdesign.retrofit.RequestHandler;
 import info.androidhive.materialdesign.retrofit.RetrofitFactory;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import static android.R.attr.data;
-import static android.R.attr.fragment;
 import static android.app.Activity.RESULT_OK;
-import static info.androidhive.materialdesign.R.layout.fragment_create;
-import static java.net.URL.*;
-import static java.security.AccessController.getContext;
 
-/**
- * Created by Ravi on 29/07/15.
- */
+
+
 public class CreateFragment extends Fragment {
 
     Spinner spinner_ingredient;
@@ -67,11 +59,14 @@ public class CreateFragment extends Fragment {
     public Button button_create;
     public Button button_addphoto;
     public EditText edit_name;
+    public EditText edit_instructions;
     public ImageView image_photo;
     public static final int IMAGE_GALLERY_REQUEST = 20;
     Uri imageUri;
+    Bitmap bitmap;
     ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
 
+    CustomOnItemIngredientSelectedListener add_ingredient;
 
 
     Receipts receipt= new Receipts() ;
@@ -92,6 +87,7 @@ public class CreateFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_create, container, false);
         spinner_ingredient = (Spinner) rootView.findViewById(R.id.spinner_ingredient);
         spinner_family = (Spinner) rootView.findViewById(R.id.spinner_family);
+        edit_instructions = (EditText) rootView.findViewById(R.id.edit_text);
 
 
 
@@ -155,12 +151,10 @@ public class CreateFragment extends Fragment {
         });
 
 
-        final CustomOnItemIngredientSelectedListener add_ingredient = new CustomOnItemIngredientSelectedListener(ingredients);
+       add_ingredient = new CustomOnItemIngredientSelectedListener(ingredients);
         spinner_family.setOnItemSelectedListener(new CustomOnItemSelectedListener());
         spinner_ingredient.setOnItemSelectedListener(add_ingredient);
         edit_name=(EditText) rootView.findViewById(R.id.edit_name);
-
-
 
 
         button_addphoto = (Button)rootView.findViewById(R.id.button_addphoto);
@@ -197,11 +191,15 @@ public class CreateFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+
                 receipt = new Receipts();
                 receipt.setFamily(String.valueOf(spinner_family.getSelectedItem()));
                 receipt.setIngredients(add_ingredient.ingredients);
                 receipt.setName(edit_name.getText().toString());
-                receipt.setPhoto(imageUri);
+                receipt.setText(edit_instructions.getText().toString());
+                receipt.setIngredients(add_ingredient.ingredients);
+                //receipt.setPhoto(imageUri);
+                uploadReciept();
                 Toast.makeText(getActivity(),
                         "Ви додали рецепт : " +edit_name.getText()+
                                 "\nКатегорія : "+ String.valueOf(spinner_family.getSelectedItem()) ,
@@ -232,14 +230,14 @@ public class CreateFragment extends Fragment {
                 try {
                     inputStream = getActivity().getContentResolver().openInputStream(imageUri);
                     // get a bitmap from the stream.
-                    Bitmap image = BitmapFactory.decodeStream(inputStream);
+                    bitmap = BitmapFactory.decodeStream(inputStream);
                     int width=200;
                     int height=200;
-                    image=Bitmap.createScaledBitmap(image, width,height, true);
+                    bitmap=Bitmap.createScaledBitmap(bitmap, width,height, true);
 
 
                     // show the image to the user
-                    image_photo.setImageBitmap(image);
+                    image_photo.setImageBitmap(bitmap);
 
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -251,11 +249,53 @@ public class CreateFragment extends Fragment {
         }
     }
 
+    public String getStringImage(Bitmap bmp){
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        receipt.setPhoto(Base64.encodeToString(imageBytes, Base64.DEFAULT));
+        return encodedImage;
+    }
 
 
+    public void uploadReciept(){
+        final String name = edit_name.getText().toString().trim();
+        final String image = getStringImage(bitmap);
+        class UploadImage extends AsyncTask<Void,Void,String> {
+            ProgressDialog loading;
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                loading = ProgressDialog.show(getActivity(),"Please wait...","uploading",false,false);
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                loading.dismiss();
+                Toast.makeText(getActivity(),s,Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            protected String doInBackground(Void... params) {
+                RequestHandler rh = new RequestHandler();
+
+                String result = null;
+                try {
+                    result = rh.sendPostRequest(receipt);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
+        }
+        UploadImage u = new UploadImage();
+        u.execute();
+    }
 
 
-        @Override
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
     }
@@ -264,10 +304,6 @@ public class CreateFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
     }
-
-
-
-
 
 
 }
